@@ -499,216 +499,177 @@ textarea{resize:vertical;min-height:80px}
   <h3>📤 Вивантажити бриф</h3>
   <p>Натисніть «Сформувати» — текст з'явиться нижче. На iPhone натисніть «Поділитись» або виділіть текст вручну і скопіюйте.</p>
   <div class="btn-row">
-    <button class="btn btn-o" id="btnGen" onclick="doGen()">📋 Сформувати</button>
-    <button class="btn btn-g" id="btnShare" onclick="doShare()">📤 Поділитись</button>
+    <button class="btn btn-o" id="btnGen">📋 Сформувати</button>
+    <button class="btn btn-g" id="btnShare">📤 Поділитись</button>
   </div>
   <div class="exp-msg" id="expMsg"></div>
   <div id="expWrap">
     <p>👆 Утримуйте текст → «Виділити все» → «Копіювати»</p>
     <textarea id="outTa" readonly></textarea>
-    <button class="btn-copy2" id="btnCopy2" onclick="doCopy2()">📋 Скопіювати в буфер</button>
+    <button class="btn-copy2" id="btnCopy2">📋 Скопіювати в буфер</button>
   </div>
 </div>
 
 </div><!-- /page -->
 
-<button class="backtop" id="bTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<button class="backtop" id="bTop">↑</button>
 
 <script>
-// ── Прогрес ────────────────────────────────────────────
+// ── Прогрес ────────────────────────────────────────
 function updProgress() {
-  try {
-    var req = document.querySelectorAll('[data-req]');
-    var n = 0;
-    for (var i = 0; i < req.length; i++) {
-      if (req[i].value && req[i].value.trim()) n++;
-    }
-    var pct = req.length ? Math.round(n / req.length * 100) : 0;
-    var pf = document.getElementById('pFill');
-    var pt = document.getElementById('pTxt');
-    if (pf) pf.style.width = pct + '%';
-    if (pt) pt.textContent = n + '/' + req.length;
+  var req = document.querySelectorAll('[data-req]');
+  var n = 0;
+  req.forEach(function(el) { if (el.value && el.value.trim()) n++; });
+  var pct = req.length ? Math.round(n / req.length * 100) : 0;
+  document.getElementById('pFill').style.width = pct + '%';
+  document.getElementById('pTxt').textContent = n + '/' + req.length;
 
-    var dets = document.querySelectorAll('details');
-    var ids = ['01','02','03','04','05','06','07','08','09','10'];
-    for (var d = 0; d < dets.length && d < ids.length; d++) {
-      var cnt = dets[d].querySelectorAll('input:checked').length;
-      var inps = dets[d].querySelectorAll('input[type=text],input[type=url],input[type=email],input[type=tel],textarea');
-      for (var k = 0; k < inps.length; k++) { if (inps[k].value && inps[k].value.trim()) cnt++; }
-      var badge = document.getElementById('sf' + ids[d]);
-      if (badge) { badge.textContent = cnt ? cnt + ' ✓' : ''; badge.className = cnt ? 'sf on' : 'sf'; }
-    }
-  } catch(e) {}
+  // Значки заповнення
+  var dets = document.querySelectorAll('details');
+  var ids = ['01','02','03','04','05','06','07','08','09','10'];
+  dets.forEach(function(d, i) {
+    var cnt = d.querySelectorAll('input:checked').length
+            + [].filter.call(d.querySelectorAll('input[type=text],input[type=url],input[type=email],input[type=tel],textarea'), function(el){ return el.value.trim(); }).length;
+    var el = document.getElementById('sf' + ids[i]);
+    if (el) { el.textContent = cnt ? cnt + ' ✓' : ''; el.classList.toggle('on', cnt > 0); }
+  });
 }
 document.addEventListener('input', updProgress);
 document.addEventListener('change', updProgress);
-setTimeout(updProgress, 300);
+setTimeout(updProgress, 200);
 
-// ── Chips / Rows JS-фолбек ─────────────────────────────
-try {
-  document.querySelectorAll('.chip').forEach(function(chip) {
-    var inp = chip.querySelector('input');
-    if (!inp) return;
-    inp.addEventListener('change', function() {
-      if (inp.type === 'radio') {
-        document.querySelectorAll('input[name="' + inp.name + '"]').forEach(function(r) {
-          var p = r.closest ? r.closest('.chip') : null;
-          if (p) p.classList.toggle('on', r.checked);
-        });
-      } else {
-        chip.classList.toggle('on', inp.checked);
-      }
-    });
+// ── Чіп JS-фолбек (для старих браузерів де :has не підтримується) ──
+document.querySelectorAll('.chip').forEach(function(chip) {
+  var inp = chip.querySelector('input');
+  if (!inp) return;
+  inp.addEventListener('change', function() {
+    if (inp.type === 'radio') {
+      document.querySelectorAll('input[name="' + inp.name + '"]').forEach(function(r) {
+        var p = r.closest('.chip');
+        if (p) p.classList.toggle('on', r.checked);
+      });
+    } else {
+      chip.classList.toggle('on', inp.checked);
+    }
   });
-  document.querySelectorAll('.crow').forEach(function(row) {
-    var inp = row.querySelector('input');
-    if (!inp) return;
-    inp.addEventListener('change', function() {
-      if (inp.type === 'radio') {
-        document.querySelectorAll('input[name="' + inp.name + '"]').forEach(function(r) {
-          var p = r.closest ? r.closest('.crow') : null;
-          if (p) p.classList.toggle('on', r.checked);
-        });
-      } else {
-        row.classList.toggle('on', inp.checked);
-      }
-    });
+});
+document.querySelectorAll('.crow').forEach(function(row) {
+  var inp = row.querySelector('input');
+  if (!inp) return;
+  inp.addEventListener('change', function() {
+    if (inp.type === 'radio') {
+      document.querySelectorAll('input[name="' + inp.name + '"]').forEach(function(r) {
+        var p = r.closest('.crow');
+        if (p) p.classList.toggle('on', r.checked);
+      });
+    } else {
+      row.classList.toggle('on', inp.checked);
+    }
   });
-} catch(e) {}
+});
 
-// ── Формування тексту ──────────────────────────────────
+// ── Формування тексту ──────────────────────────────
 var secNames = ['БІЗНЕС','ЦІЛІ САЙТУ','АУДИТОРІЯ','КОНТЕНТ','ДИЗАЙН',
                 'КОНКУРЕНТИ','КОНТАКТИ','ТЕХНІЧНЕ','ТЕРМІНИ І БЮДЖЕТ','ДОДАТКОВО'];
-
 function buildText() {
   var lines = ['═══════════════════════════', '  БРИФ НА СТВОРЕННЯ САЙТУ', '═══════════════════════════', ''];
-  try {
-    var dets = document.querySelectorAll('details');
-    for (var d = 0; d < dets.length; d++) {
-      lines.push('── ' + (secNames[d] || '') + ' ──');
-      var fields = dets[d].querySelectorAll('.f');
-      for (var f = 0; f < fields.length; f++) {
-        var lbl = fields[f].querySelector('.fl');
-        if (!lbl) continue;
-        var name = lbl.textContent.replace(/\*/g,'').trim();
-        var vals = [];
-        var inps = fields[f].querySelectorAll('input[type=text],input[type=url],input[type=email],input[type=tel]');
-        for (var i = 0; i < inps.length; i++) { if (inps[i].value.trim()) vals.push(inps[i].value.trim()); }
-        var ta = fields[f].querySelector('textarea');
-        if (ta && ta.value.trim()) vals.push(ta.value.trim());
-        var checked = fields[f].querySelectorAll('input:checked');
-        for (var c = 0; c < checked.length; c++) {
-          var par = checked[c].closest ? (checked[c].closest('.chip') || checked[c].closest('.crow')) : null;
-          if (par) vals.push(par.textContent.replace(/\s+/g,' ').trim());
-        }
-        if (vals.length) lines.push('  ' + name + '
-  → ' + vals.join(', '));
-      }
-      lines.push('');
-    }
-  } catch(e) { lines.push('Помилка: ' + e.message); }
+  document.querySelectorAll('details').forEach(function(det, idx) {
+    lines.push('── ' + (secNames[idx] || '') + ' ──');
+    det.querySelectorAll('.f').forEach(function(field) {
+      var lbl = field.querySelector('.fl');
+      if (!lbl) return;
+      var name = (lbl.childNodes[0] || lbl).textContent.trim().replace(/\*/g, '').trim();
+      var vals = [];
+      field.querySelectorAll('input[type=text],input[type=url],input[type=email],input[type=tel]')
+        .forEach(function(i) { if (i.value.trim()) vals.push(i.value.trim()); });
+      var ta = field.querySelector('textarea');
+      if (ta && ta.value.trim()) vals.push(ta.value.trim());
+      field.querySelectorAll('input:checked').forEach(function(c) {
+        var p = c.closest('.chip') || c.closest('.crow');
+        if (p) vals.push(p.textContent.trim().replace(/\s+/g, ' '));
+      });
+      if (vals.length) lines.push('  ' + name + '\n  → ' + vals.join(', '));
+    });
+    lines.push('');
+  });
   lines.push('═══════════════════════════');
   return lines.join('\n');
 }
 
 function showMsg(txt, ok) {
-  try {
-    var m = document.getElementById('expMsg');
-    if (m) { m.textContent = txt; m.className = 'exp-msg ' + (ok ? 'ok' : 'warn'); m.style.display = 'block'; }
-  } catch(e) {}
+  var m = document.getElementById('expMsg');
+  m.textContent = txt;
+  m.className = 'exp-msg ' + (ok ? 'ok' : 'warn');
+  m.style.display = 'block';
 }
 
-function showWrap(text) {
-  try {
-    var ta = document.getElementById('outTa');
-    var wr = document.getElementById('expWrap');
-    if (ta) ta.value = text;
-    if (wr) wr.style.display = 'block';
-    setTimeout(function() {
-      try { if (wr) wr.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
-    }, 200);
-  } catch(e) {}
+function showTextarea(text) {
+  var ta = document.getElementById('outTa');
+  ta.value = text;
+  document.getElementById('expWrap').style.display = 'block';
+  setTimeout(function() {
+    document.getElementById('expWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 150);
 }
 
-function execCopy(text) {
-  try {
-    var ta = document.getElementById('outTa');
-    if (!ta) return false;
-    ta.value = text;
-    ta.removeAttribute('readonly');
-    ta.focus();
-    ta.select();
-    if (ta.setSelectionRange) ta.setSelectionRange(0, 99999);
-    var ok = document.execCommand('copy');
-    ta.setAttribute('readonly', '');
-    return ok;
-  } catch(e) { return false; }
+function doCopy(text) {
+  // Спроба 1: clipboard API (потрібен HTTPS)
+  if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showMsg('✅ Скопійовано!', true);
+    }).catch(function() { doExecCopy(text); });
+    return;
+  }
+  doExecCopy(text);
 }
 
-// ── Кнопка: Сформувати ────────────────────────────────
-function doGen() {
-  try {
-    var text = buildText();
-    showWrap(text);
-    // Спроба clipboard API
-    if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text)
-        .then(function() { showMsg('✅ Скопійовано!', true); })
-        .catch(function() {
-          var ok = execCopy(text);
-          showMsg(ok ? '✅ Скопійовано!' : '⚠️ Виділіть текст нижче і скопіюйте', ok);
-        });
-    } else {
-      var ok = execCopy(text);
-      showMsg(ok ? '✅ Скопійовано!' : '⚠️ Виділіть текст нижче і скопіюйте вручну', ok);
-    }
-  } catch(e) { showMsg('Помилка: ' + e.message, false); }
-}
-
-// ── Кнопка: Поділитись ────────────────────────────────
-function doShare() {
-  try {
-    var text = buildText();
-    if (navigator.share) {
-      navigator.share({ title: 'Бриф на створення сайту', text: text });
-    } else {
-      showWrap(text);
-      showMsg('📋 Скопіюйте текст нижче', false);
-    }
-  } catch(e) {
-    try {
-      var text2 = buildText();
-      showWrap(text2);
-      showMsg('⚠️ Виділіть текст нижче', false);
-    } catch(e2) {}
+function doExecCopy(text) {
+  // Спроба 2: execCommand (file://, старі браузери)
+  var ta = document.getElementById('outTa');
+  ta.value = text;
+  ta.removeAttribute('readonly');
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, 99999);
+  var ok = false;
+  try { ok = document.execCommand('copy'); } catch(e) {}
+  ta.setAttribute('readonly', '');
+  if (ok) {
+    showMsg('✅ Скопійовано!', true);
+  } else {
+    showMsg('⚠️ Виділіть текст нижче і скопіюйте вручну', false);
   }
 }
 
-// ── Кнопка: Скопіювати в буфер ────────────────────────
-function doCopy2() {
-  try {
-    var ta = document.getElementById('outTa');
-    var text = ta ? ta.value : '';
-    if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text)
-        .then(function() { showMsg('✅ Скопійовано!', true); })
-        .catch(function() {
-          var ok = execCopy(text);
-          showMsg(ok ? '✅ Скопійовано!' : '⚠️ Виділіть вручну', ok);
-        });
-    } else {
-      var ok = execCopy(text);
-      showMsg(ok ? '✅ Скопійовано!' : '⚠️ Виділіть текст вручну', ok);
-    }
-  } catch(e) { showMsg('Помилка: ' + e.message, false); }
-}
+// ── Кнопки ────────────────────────────────────────
+document.getElementById('btnGen').addEventListener('click', function() {
+  var text = buildText();
+  showTextarea(text);
+  doCopy(text);
+});
 
-// ── Кнопка нагору ─────────────────────────────────────
+document.getElementById('btnShare').addEventListener('click', function() {
+  var text = buildText();
+  if (navigator.share) {
+    navigator.share({ title: 'Бриф на створення сайту', text: text })
+      .catch(function() {});
+  } else {
+    showTextarea(text);
+    showMsg('📋 Скопіюйте текст нижче', false);
+  }
+});
+
+document.getElementById('btnCopy2').addEventListener('click', function() {
+  doCopy(document.getElementById('outTa').value);
+});
+
+// ── Кнопка нагору ────────────────────────────────
 window.addEventListener('scroll', function() {
-  try {
-    var b = document.getElementById('bTop');
-    if (b) b.className = window.scrollY > 400 ? 'backtop on' : 'backtop';
-  } catch(e) {}
+  document.getElementById('bTop').classList.toggle('on', window.scrollY > 400);
+});
+document.getElementById('bTop').addEventListener('click', function() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 </script>
 </body>
+</html>
